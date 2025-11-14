@@ -20,7 +20,7 @@ type Message = {
 
 interface ChatPanelProps {
   currentUserId: string;
-  target: ChatTarget | null;
+  target: ChatTarget; // <- no longer nullable
   onClose: () => void;
 }
 
@@ -37,16 +37,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const [otherName, setOtherName] = useState<string>("Student");
 
   useEffect(() => {
-    if (!target) {
-      setConversationId(null);
-      setMessages([]);
-      return;
-    }
-
     async function setup() {
       setLoading(true);
 
       try {
+        // load other user's profile
         const { data: profile } = await supabase
           .from("campus_users")
           .select("username, email")
@@ -54,7 +49,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           .maybeSingle();
 
         if (profile) {
-          setOtherName(profile.username || profile.email || "Campus student");
+          setOtherName(
+            profile.username || profile.email || "Campus student"
+          );
         } else {
           setOtherName("Campus student");
         }
@@ -64,6 +61,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             ? [currentUserId, target.targetUserId]
             : [target.targetUserId, currentUserId];
 
+        // check for existing conversation
         const { data: existing } = await supabase
           .from("conversations")
           .select("id")
@@ -75,6 +73,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
         let convId: string | null = existing?.id ?? null;
 
+        // create if missing
         if (!convId) {
           const { data: created, error: createErr } = await supabase
             .from("conversations")
@@ -99,6 +98,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
         if (!convId) {
           setConversationId(null);
+          setMessages([]);
           return;
         }
 
@@ -154,8 +154,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   }
 
-  if (!target) return null;
-
   const contextLabel =
     target.contextType === "market"
       ? "Marketplace"
@@ -199,7 +197,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             return (
               <div
                 key={m.id}
-                className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                className={`flex ${
+                  isMe ? "justify-end" : "justify-start"
+                }`}
               >
                 <div
                   className={

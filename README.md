@@ -212,57 +212,6 @@ This ensures safety and privacy for campus users.
 
 ---
 
-# 💾 Installation (Local Development)
-
-### 1. Clone the repository:
-
-```bash
-git clone https://github.com/<your-username>/campuscore.git
-cd campuscore/web
-```
-
-### 2. Install dependencies:
-
-```bash
-npm install
-```
-
-### 3. Environment variables
-
-Create `.env.local`:
-
-```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_SITE_URL=http://localhost:5173
-```
-
-### 4. Run locally:
-
-```bash
-npm run dev
-```
-
-Runs on:
-👉 **[http://localhost:5173](http://localhost:5173)**
-
----
-
-# 🌐 Deployment (Vercel)
-
-1. Push to GitHub
-2. Import repo to Vercel
-3. Add environment variables in Vercel Dashboard:
-
-   * `VITE_SUPABASE_URL`
-   * `VITE_SUPABASE_ANON_KEY`
-   * `VITE_SITE_URL=https://your-vercel-url.vercel.app`
-4. Deploy
-
-Magic link auth will now work perfectly on production.
-
----
-
 # 🔮 Future Enhancements
 
 CampusCore is designed with scalability in mind.
@@ -284,5 +233,3 @@ CampusCore isn’t just another project —
 it’s a **real**, fully functional, production-ready portal that solves actual student problems on campus.
 
 It combines practicality, design, engineering, and real-world usefulness in one polished product.
-
-If you want this README tailored *even more* for the hackathon theme or want screenshots inserted, just tell me — I’ll format them perfectly.

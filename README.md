@@ -1,73 +1,288 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 🏫 CampusCore – A Unified Smart Campus Hub for SIT
 
-Currently, two official plugins are available:
+CampusCore is a modern, student-first web application designed to centralize and simplify campus life at **Siddaganga Institute of Technology (SIT), Tumkur)**.
+Instead of using scattered WhatsApp groups, Google Forms, random websites, and notices, CampusCore brings everything together in **one clean, intelligent, privacy-friendly platform**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Made with ❤️ by students, for students.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+# 🎯 Why CampusCore?
 
-## Expanding the ESLint configuration
+College life is full of small problems:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+* Lost ID cards and books
+* Wanting to sell or buy textbooks
+* Needing a hackathon or study partner
+* Confusion about issue reporting (Wi-Fi, classroom, hostel)
+* Academic doubts with no proper place to ask
+* Too many WhatsApp groups, none reliable
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+CampusCore solves all of this by giving students a **single portal** that is:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+* Verified (SIT email only)
+* Simple
+* Useful
+* Modern
+* Campus-exclusive
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+# 🚀 Key Features (Simple Explanation)
+
+## ✔️ 1. Campus-Verified Login
+
+Students log in using their official SIT email ([USN@sit.ac.in](mailto:USN@sit.ac.in)).
+No password required — just a secure magic link.
+
+---
+
+## ✔️ 2. SmartLost – Lost & Found (with image upload)
+
+* Post found items with photos
+* Owners can contact finders
+* Finder can mark item as “Returned”
+* Helps reduce lost belongings on campus
+
+---
+
+## ✔️ 3. PeerConnect – Campus Q&A Forum
+
+* Ask academic questions
+* Get answers from peers
+* Upvotes + “Best Answer”
+* Like StackOverflow, but campus-exclusive
+
+---
+
+## ✔️ 4. Marketplace – Buy & Sell Items
+
+* Books, electronics, hostel items, cycles, etc.
+* Upload photos, prices, categories
+* Buyers can message sellers
+* Safer and more relevant than OLX/WhatsApp
+
+---
+
+## ✔️ 5. GroupUp – Find Teams / Groups / Interests
+
+* Hackathon team search
+* Study partners
+* Club meets
+* Sports groups
+* “I’m interested” button + chat with the creator
+
+---
+
+## ✔️ 6. Campus Issue Tracker
+
+A transparent system for reporting problems:
+
+* Wi-Fi issues
+* Hostel complaints
+* Classroom infrastructure
+* Cleanliness, etc.
+
+Features:
+
+* Submit issue with photo
+* Public “Me Too” (upvote) button
+* Status flow: `Submitted → In Review → In Progress → Resolved`
+
+This helps the campus prioritize student problems.
+
+---
+
+## ✔️ 7. Anonymous + Contextual Chat
+
+Users can chat **without sharing personal contact details**.
+The chat automatically knows the context, e.g.:
+
+* “Chat about this lost item”
+* “Chat with seller”
+* “Chat with GroupUp creator”
+
+This keeps things safe and frictionless.
+
+---
+
+## ✔️ 8. Campus Feed
+
+A live feed that shows:
+
+* Issues reported
+* Lost & found updates
+* Marketplace listings
+* Questions asked
+* GroupUp posts
+
+Clicking an item opens a clean modal with a button to jump to the relevant module.
+
+---
+
+## ✔️ 9. Profiles + Gamified Leaderboard
+
+Every student gets a profile with:
+
+* Name / username
+* Bio
+* Points
+* Privacy toggle (hide from leaderboard if you want)
+
+Points are earned for:
+
+* Posting an issue
+* Asking questions
+* Answering / best answer
+* Returning lost items
+* Posting listings
+* Creating GroupUp posts
+* Helping others
+
+Leaderboard shows “Campus Champions” — students who contribute the most.
+
+---
+
+# 🛠️ Technical Overview (For Judges)
+
+## 🔧 Tech Stack
+
+### **Frontend**
+
+* **React + TypeScript**
+* **Vite** (blazing fast dev)
+* **Tailwind CSS** (custom modern dark theme)
+* Responsive UI with glassmorphism and smooth transitions
+
+### **Backend**
+
+Handled entirely by **Supabase**:
+
+* Authentication (magic link with redirect)
+* Postgres Database
+* Row Level Security (important for campus privacy)
+* File Storage (images for marketplace, lost & found, issues)
+* Real-time subscriptions (for chat/messages)
+
+### **Deployment**
+
+* **Frontend:** Vercel
+* **Backend:** Supabase cloud
+* Environment variables stored securely in Vercel
+
+---
+
+# 🗄️ Database Design
+
+### Main Tables
+
+| Table             | Purpose                                             |
+| ----------------- | --------------------------------------------------- |
+| `campus_users`    | Profiles, points, display name, privacy             |
+| `issues`          | Campus problem reports with status, location, photo |
+| `found_items`     | Lost & Found system                                 |
+| `peer_questions`  | Q&A questions                                       |
+| `peer_answers`    | Answers + upvotes + best answer                     |
+| `market_listings` | Marketplace posts                                   |
+| `groupup_posts`   | Team/group search                                   |
+| `conversations`   | Chat conversation metadata                          |
+| `messages`        | Chat messages                                       |
+
+### Row Level Security (RLS)
+
+All tables use RLS to ensure:
+
+* Students can **only modify their own posts**
+* Conversations are private between two users
+* Image uploads are scoped to logged-in accounts only
+
+This ensures safety and privacy for campus users.
+
+---
+
+# 🔐 Authentication Flow
+
+1. User enters SIT email
+2. Supabase sends a **magic link**
+3. Clicking the link returns user to the app
+4. Supabase sets secure session in browser
+5. Frontend loads user profile & points
+6. App shows the Home page (Feed + Navbar)
+
+---
+
+# 💾 Installation (Local Development)
+
+### 1. Clone the repository:
+
+```bash
+git clone https://github.com/<your-username>/campuscore.git
+cd campuscore/web
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Install dependencies:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
+
+### 3. Environment variables
+
+Create `.env.local`:
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SITE_URL=http://localhost:5173
+```
+
+### 4. Run locally:
+
+```bash
+npm run dev
+```
+
+Runs on:
+👉 **[http://localhost:5173](http://localhost:5173)**
+
+---
+
+# 🌐 Deployment (Vercel)
+
+1. Push to GitHub
+2. Import repo to Vercel
+3. Add environment variables in Vercel Dashboard:
+
+   * `VITE_SUPABASE_URL`
+   * `VITE_SUPABASE_ANON_KEY`
+   * `VITE_SITE_URL=https://your-vercel-url.vercel.app`
+4. Deploy
+
+Magic link auth will now work perfectly on production.
+
+---
+
+# 🔮 Future Enhancements
+
+CampusCore is designed with scalability in mind.
+Next planned improvements:
+
+* AI-powered SmartLost matching (CLIP / vector embeddings)
+* Push notifications for messages and replies
+* Admin dashboard for SIT staff (issue management)
+* Mobile app version using Capacitor / React Native
+* Timetable + attendance module (optional future)
+* Notes / Study resources sharing system
+* Clubs dashboard for events + announcements
+
+---
+
+# 🏁 Final Note
+
+CampusCore isn’t just another project —
+it’s a **real**, fully functional, production-ready portal that solves actual student problems on campus.
+
+It combines practicality, design, engineering, and real-world usefulness in one polished product.
+
+If you want this README tailored *even more* for the hackathon theme or want screenshots inserted, just tell me — I’ll format them perfectly.

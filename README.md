@@ -144,7 +144,7 @@ Leaderboard shows “Campus Champions” — students who contribute the most.
 
 ---
 
-# 🛠️ Technical Overview (For Judges)
+# 🛠️ Technical Overview
 
 ## 🔧 Tech Stack
 

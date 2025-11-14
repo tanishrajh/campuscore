@@ -53,7 +53,7 @@ const AuthCard: React.FC = () => {
             type="email"
             required
             className="w-full border border-slate-700 rounded-lg px-3 py-2 bg-slate-950 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
-            placeholder="1si24is112@sit.ac.in"
+            placeholder="1si24is999@sit.ac.in"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />

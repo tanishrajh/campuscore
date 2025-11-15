@@ -42,17 +42,18 @@ type ModuleView =
 
 function App() {
   const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [activeView, setActiveView] = useState<View>("home");
   const [profileOpen, setProfileOpen] = useState(false);
   const [chatTarget, setChatTarget] = useState<ChatTarget | null>(null);
 
   // create campus_users row if missing
-  async function createUserProfileIfNotExists(user: any) {
+  async function createUserProfileIfNotExists(currentUser: any) {
     try {
       const { data, error } = await supabase
         .from("campus_users")
         .select("*")
-        .eq("auth_uid", user.id)
+        .eq("auth_uid", currentUser.id)
         .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
@@ -62,14 +63,21 @@ function App() {
 
       if (data) return;
 
-      const { email } = user;
+      const { email } = currentUser;
+      const usn = (email as string | null)?.split("@")[0] ?? "";
+      const defaultUsername = usn || "student";
 
-      const { error: insertError } = await supabase.from("campus_users").insert([
-        {
-          auth_uid: user.id,
-          email,
-        },
-      ]);
+      const { error: insertError } = await supabase
+        .from("campus_users")
+        .insert([
+          {
+            auth_uid: currentUser.id,
+            email,
+            username: defaultUsername,
+            show_profile: true,
+            points: 0,
+          },
+        ]);
 
       if (insertError) {
         console.error("Profile insert error:", insertError);
@@ -80,27 +88,59 @@ function App() {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const sessionUser = data.session?.user ?? null;
-      setUser(sessionUser);
-      if (sessionUser) createUserProfileIfNotExists(sessionUser);
-    });
+    let ignore = false;
+
+    async function initAuth() {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("getSession error:", error);
+        }
+        if (ignore) return;
+
+        const sessionUser = data.session?.user ?? null;
+        setUser(sessionUser);
+        if (sessionUser) {
+          await createUserProfileIfNotExists(sessionUser);
+        }
+      } catch (err) {
+        console.error("Unexpected auth init error:", err);
+        if (!ignore) {
+          setUser(null);
+        }
+      } finally {
+        if (!ignore) {
+          setAuthLoading(false);
+        }
+      }
+    }
+
+    initAuth();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        if (ignore) return;
         const sessionUser = session?.user ?? null;
         setUser(sessionUser);
-        if (sessionUser) createUserProfileIfNotExists(sessionUser);
+        if (sessionUser) {
+          createUserProfileIfNotExists(sessionUser);
+        }
+        setAuthLoading(false);
       }
     );
 
     return () => {
-      listener.subscription.unsubscribe();
+      ignore = true;
+      listener?.subscription.unsubscribe();
     };
   }, []);
 
   async function handleLogout() {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Sign out error:", err);
+    }
     setUser(null);
     setActiveView("home");
     setChatTarget(null);
@@ -121,11 +161,21 @@ function App() {
     });
   }
 
-  // navigation from feed modal
+  // navigation from feed
   function handleOpenModuleFromFeed(view: ModuleView) {
     setActiveView(view);
   }
 
+  // While we are still checking auth/session
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-200">
+        <p className="text-sm text-slate-400">Connecting to CampusCore…</p>
+      </div>
+    );
+  }
+
+  // Not logged in
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-50">
@@ -139,7 +189,9 @@ function App() {
 
   switch (activeView) {
     case "home":
-      content = <HomeFeed onOpenModule={handleOpenModuleFromFeed} />;
+      content = (
+        <HomeFeed onOpenModule={handleOpenModuleFromFeed} userId={user.id} />
+      );
       break;
     case "issues":
       content = (

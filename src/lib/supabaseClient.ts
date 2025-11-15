@@ -1,14 +1,18 @@
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.warn("Supabase env vars are missing");
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn(
+    "Supabase URL or Anon Key is missing. Check your environment variables."
+  );
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
+    persistSession: true,        // <-- keep session in localStorage
+    autoRefreshToken: true,      // <-- refresh tokens automatically
+    detectSessionInUrl: true,    // harmless even if we don't use magic links now
   },
 });

@@ -1,51 +1,148 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
+const redirectTo =
+  import.meta.env.VITE_SITE_URL || window.location.origin;
+
+type Mode = "login" | "register";
+
 const AuthCard: React.FC = () => {
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
-  const [sending, setSending] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    setMessage(null);
+    setPassword("");
+    setConfirm("");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim()) return;
-
-    setSending(true);
     setMessage(null);
 
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+    const trimmedConfirm = confirm.trim();
+
+    if (!trimmedEmail) {
+      setMessage("Please enter your SIT email.");
+      return;
+    }
+
+    // Enforce SIT domain (client-side check)
+    if (!trimmedEmail.endsWith("@sit.ac.in")) {
+      setMessage("Only SIT emails (USN@sit.ac.in) are allowed.");
+      return;
+    }
+
+    if (!trimmedPassword) {
+      setMessage("Please enter your password.");
+      return;
+    }
+
+    if (trimmedPassword.length < 6) {
+      setMessage("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (mode === "register" && trimmedPassword !== trimmedConfirm) {
+      setMessage("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          emailRedirectTo: window.location.origin,
-        },
-      });
+      if (mode === "register") {
+        // Email + password registration with email confirmation
+        const { error } = await supabase.auth.signUp({
+          email: trimmedEmail,
+          password: trimmedPassword,
+          options: {
+            emailRedirectTo: redirectTo,
+          },
+        });
 
-      if (error) throw error;
+        if (error) {
+          console.error("Sign up error:", error);
+          setMessage("Registration failed: " + error.message);
+        } else {
+          setMessage(
+            "Account created! Check your SIT email to confirm. After verifying, come back and log in with your password."
+          );
+        }
+      } else {
+        // Normal email + password login
+        const { error } = await supabase.auth.signInWithPassword({
+          email: trimmedEmail,
+          password: trimmedPassword,
+        });
 
-      setMessage(
-        "Magic link sent! Check your SIT email on this device and open the link."
-      );
+        if (error) {
+          console.error("Login error:", error);
+          setMessage("Login failed: " + error.message);
+        } else {
+          // On success, App.tsx will detect the new session and move past the login screen.
+          setMessage(null);
+        }
+      }
     } catch (err: any) {
       console.error("Auth error:", err);
-      setMessage("Failed to send magic link: " + err.message);
+      setMessage("Unexpected error: " + err.message);
     } finally {
-      setSending(false);
+      setLoading(false);
     }
   }
 
+  const isRegister = mode === "register";
+
   return (
-    <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950/80 backdrop-blur-md shadow-2xl shadow-black/60 p-6 space-y-4">
+    <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950/80 backdrop-blur-md shadow-2xl shadow-black/60 p-6 space-y-5">
+      {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-slate-50">
-          Sign in to CampusCore
+          {isRegister ? "Create your CampusCore account" : "Sign in to CampusCore"}
         </h1>
         <p className="text-sm text-slate-400 mt-1">
-          Use your SIT email (USN@sit.ac.in). We&apos;ll send you a magic link
-          – no password needed.
+          Use your official SIT email (<span className="font-mono">USN@sit.ac.in</span>)
+          to access the smart campus hub.
         </p>
       </div>
 
+      {/* Mode toggle */}
+      <div className="inline-flex rounded-full bg-slate-900 border border-slate-700 p-1 text-xs">
+        <button
+          type="button"
+          onClick={() => switchMode("login")}
+          className={
+            "px-4 py-1.5 rounded-full transition-all " +
+            (mode === "login"
+              ? "bg-sky-500 text-slate-950 font-semibold"
+              : "text-slate-300 hover:text-slate-100")
+          }
+        >
+          Login
+        </button>
+        <button
+          type="button"
+          onClick={() => switchMode("register")}
+          className={
+            "px-4 py-1.5 rounded-full transition-all " +
+            (mode === "register"
+              ? "bg-sky-500 text-slate-950 font-semibold"
+              : "text-slate-300 hover:text-slate-100")
+          }
+        >
+          Register
+        </button>
+      </div>
+
+      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-3 text-sm">
         <div className="space-y-1">
           <label className="text-xs text-slate-300">SIT Email</label>
@@ -53,18 +150,50 @@ const AuthCard: React.FC = () => {
             type="email"
             required
             className="w-full border border-slate-700 rounded-lg px-3 py-2 bg-slate-950 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
-            placeholder="1si24is999@sit.ac.in"
+            placeholder="1si24is112@sit.ac.in"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
+        <div className="space-y-1">
+          <label className="text-xs text-slate-300">Password</label>
+          <input
+            type="password"
+            required
+            className="w-full border border-slate-700 rounded-lg px-3 py-2 bg-slate-950 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+            placeholder={isRegister ? "Create a password (min 6 chars)" : "Enter your password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        {isRegister && (
+          <div className="space-y-1">
+            <label className="text-xs text-slate-300">Confirm Password</label>
+            <input
+              type="password"
+              required
+              className="w-full border border-slate-700 rounded-lg px-3 py-2 bg-slate-950 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+              placeholder="Re-enter your password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+            />
+          </div>
+        )}
+
         <button
           type="submit"
-          disabled={sending}
-          className="w-full mt-1 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-500 text-white text-sm font-medium hover:from-indigo-400 hover:to-sky-400 disabled:opacity-60 transition-all"
+          disabled={loading}
+          className="w-full mt-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-500 text-white text-sm font-medium hover:from-indigo-400 hover:to-sky-400 disabled:opacity-60 transition-all"
         >
-          {sending ? "Sending magic link…" : "Send magic link"}
+          {loading
+            ? isRegister
+              ? "Creating account…"
+              : "Signing in…"
+            : isRegister
+            ? "Register & send confirmation"
+            : "Login"}
         </button>
       </form>
 
@@ -75,7 +204,8 @@ const AuthCard: React.FC = () => {
       )}
 
       <p className="text-[11px] text-slate-500">
-        Tip: open this site and your SIT mail on the same device while testing.
+        New users: use <span className="font-mono">Register</span> to create your account.
+        After confirming via email, use <span className="font-mono">Login</span> with the same password.
       </p>
     </div>
   );

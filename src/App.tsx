@@ -42,18 +42,17 @@ type ModuleView =
 
 function App() {
   const [user, setUser] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(true);
   const [activeView, setActiveView] = useState<View>("home");
   const [profileOpen, setProfileOpen] = useState(false);
   const [chatTarget, setChatTarget] = useState<ChatTarget | null>(null);
 
   // create campus_users row if missing
-  async function createUserProfileIfNotExists(currentUser: any) {
+  async function createUserProfileIfNotExists(user: any) {
     try {
       const { data, error } = await supabase
         .from("campus_users")
         .select("*")
-        .eq("auth_uid", currentUser.id)
+        .eq("auth_uid", user.id)
         .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
@@ -63,14 +62,16 @@ function App() {
 
       if (data) return;
 
-      const { email } = currentUser;
+      const { email } = user;
 
-      const { error: insertError } = await supabase.from("campus_users").insert([
-        {
-          auth_uid: currentUser.id,
-          email,
-        },
-      ]);
+      const { error: insertError } = await supabase
+        .from("campus_users")
+        .insert([
+          {
+            auth_uid: user.id,
+            email,
+          },
+        ]);
 
       if (insertError) {
         console.error("Profile insert error:", insertError);
@@ -81,59 +82,27 @@ function App() {
   }
 
   useEffect(() => {
-    let ignore = false;
-
-    async function initAuth() {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error("getSession error:", error);
-        }
-        if (ignore) return;
-
-        const sessionUser = data.session?.user ?? null;
-        setUser(sessionUser);
-        if (sessionUser) {
-          await createUserProfileIfNotExists(sessionUser);
-        }
-      } catch (err) {
-        console.error("Unexpected auth init error:", err);
-        if (!ignore) {
-          setUser(null);
-        }
-      } finally {
-        if (!ignore) {
-          setAuthLoading(false);
-        }
-      }
-    }
-
-    initAuth();
+    supabase.auth.getSession().then(({ data }) => {
+      const sessionUser = data.session?.user ?? null;
+      setUser(sessionUser);
+      if (sessionUser) createUserProfileIfNotExists(sessionUser);
+    });
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        if (ignore) return;
         const sessionUser = session?.user ?? null;
         setUser(sessionUser);
-        if (sessionUser) {
-          createUserProfileIfNotExists(sessionUser);
-        }
-        setAuthLoading(false);
+        if (sessionUser) createUserProfileIfNotExists(sessionUser);
       }
     );
 
     return () => {
-      ignore = true;
       listener.subscription.unsubscribe();
     };
   }, []);
 
   async function handleLogout() {
-    try {
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.error("Sign out error:", err);
-    }
+    await supabase.auth.signOut();
     setUser(null);
     setActiveView("home");
     setChatTarget(null);
@@ -159,16 +128,6 @@ function App() {
     setActiveView(view);
   }
 
-  // While checking session from Supabase
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-200">
-        <p className="text-sm text-slate-400">Connecting to CampusCore…</p>
-      </div>
-    );
-  }
-
-  // Not logged in
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-50">
@@ -182,9 +141,7 @@ function App() {
 
   switch (activeView) {
     case "home":
-      content = (
-        <HomeFeed onOpenModule={handleOpenModuleFromFeed} />
-      );
+      content = <HomeFeed onOpenModule={handleOpenModuleFromFeed} />;
       break;
     case "issues":
       content = (

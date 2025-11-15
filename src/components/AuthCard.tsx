@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-const redirectTo =
-  import.meta.env.VITE_SITE_URL || window.location.origin;
-
 type Mode = "login" | "register";
 
 const AuthCard: React.FC = () => {
@@ -34,7 +31,7 @@ const AuthCard: React.FC = () => {
       return;
     }
 
-    // Enforce SIT domain (client-side check)
+    // Enforce SIT email domain
     if (!trimmedEmail.endsWith("@sit.ac.in")) {
       setMessage("Only SIT emails (USN@sit.ac.in) are allowed.");
       return;
@@ -59,13 +56,10 @@ const AuthCard: React.FC = () => {
 
     try {
       if (mode === "register") {
-        // Email + password registration with email confirmation
+        // Simple sign up (no email confirmation required)
         const { error } = await supabase.auth.signUp({
           email: trimmedEmail,
           password: trimmedPassword,
-          options: {
-            emailRedirectTo: redirectTo,
-          },
         });
 
         if (error) {
@@ -73,11 +67,15 @@ const AuthCard: React.FC = () => {
           setMessage("Registration failed: " + error.message);
         } else {
           setMessage(
-            "Account created! Check your SIT email to confirm. After verifying, come back and log in with your password."
+            "Account created! You can now login with your email and password."
           );
+          // Switch to login mode after successful registration
+          setMode("login");
+          setPassword("");
+          setConfirm("");
         }
       } else {
-        // Normal email + password login
+        // Email + password login
         const { error } = await supabase.auth.signInWithPassword({
           email: trimmedEmail,
           password: trimmedPassword,
@@ -87,7 +85,7 @@ const AuthCard: React.FC = () => {
           console.error("Login error:", error);
           setMessage("Login failed: " + error.message);
         } else {
-          // On success, App.tsx will detect the new session and move past the login screen.
+          // App.tsx will detect the session and render the main app
           setMessage(null);
         }
       }
@@ -192,20 +190,19 @@ const AuthCard: React.FC = () => {
               ? "Creating account…"
               : "Signing in…"
             : isRegister
-            ? "Register & send confirmation"
+            ? "Register"
             : "Login"}
         </button>
       </form>
 
       {message && (
         <p className="text-xs text-slate-400 border border-slate-800 rounded-lg px-3 py-2 bg-slate-950/80">
-          {message}
-        </p>
+          {message}</p>
       )}
 
       <p className="text-[11px] text-slate-500">
         New users: use <span className="font-mono">Register</span> to create your account.
-        After confirming via email, use <span className="font-mono">Login</span> with the same password.
+        Then sign in anytime with <span className="font-mono">Login</span> using the same email and password.
       </p>
     </div>
   );

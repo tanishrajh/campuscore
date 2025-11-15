@@ -34,7 +34,7 @@ CampusCore solves all of this by giving students a **single portal** that is:
 ## ✔️ 1. Campus-Verified Login
 
 Students log in using their official SIT email ([USN@sit.ac.in](mailto:USN@sit.ac.in)).
-No password required — just a secure magic link.
+And set a password
 
 ---
 
@@ -217,6 +217,7 @@ This ensures safety and privacy for campus users.
 CampusCore is designed with scalability in mind.
 Next planned improvements:
 
+* Add email verification for enhanced security.
 * AI-powered SmartLost matching (CLIP / vector embeddings)
 * Push notifications for messages and replies
 * Admin dashboard for SIT staff (issue management)

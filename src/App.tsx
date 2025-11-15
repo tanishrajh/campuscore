@@ -64,20 +64,13 @@ function App() {
       if (data) return;
 
       const { email } = currentUser;
-      const usn = (email as string | null)?.split("@")[0] ?? "";
-      const defaultUsername = usn || "student";
 
-      const { error: insertError } = await supabase
-        .from("campus_users")
-        .insert([
-          {
-            auth_uid: currentUser.id,
-            email,
-            username: defaultUsername,
-            show_profile: true,
-            points: 0,
-          },
-        ]);
+      const { error: insertError } = await supabase.from("campus_users").insert([
+        {
+          auth_uid: currentUser.id,
+          email,
+        },
+      ]);
 
       if (insertError) {
         console.error("Profile insert error:", insertError);
@@ -131,7 +124,7 @@ function App() {
 
     return () => {
       ignore = true;
-      listener?.subscription.unsubscribe();
+      listener.subscription.unsubscribe();
     };
   }, []);
 
@@ -161,12 +154,12 @@ function App() {
     });
   }
 
-  // navigation from feed
+  // navigation from feed modal
   function handleOpenModuleFromFeed(view: ModuleView) {
     setActiveView(view);
   }
 
-  // While we are still checking auth/session
+  // While checking session from Supabase
   if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-200">
@@ -190,7 +183,7 @@ function App() {
   switch (activeView) {
     case "home":
       content = (
-        <HomeFeed onOpenModule={handleOpenModuleFromFeed} userId={user.id} />
+        <HomeFeed onOpenModule={handleOpenModuleFromFeed} />
       );
       break;
     case "issues":
@@ -365,4 +358,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

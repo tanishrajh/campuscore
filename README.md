@@ -228,6 +228,43 @@ Next planned improvements:
 
 ---
 
+Got you — here’s a short, clean, minimal installation section you can drop directly into your README:
+
+
+---
+
+🚀 Installation
+
+1. Clone the repo
+
+git clone https://github.com/tanishrajh/campuscore.git
+cd campuscore/web
+
+2. Install dependencies
+
+npm install
+
+3. Add environment variables
+
+Create a .env file in the web folder:
+
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
+
+4. Start development server
+
+npm run dev
+
+App will run at:
+👉 http://localhost:5173
+
+5. Build for production
+
+npm run build
+
+
+---
+
 # 🏁 Final Note
 
 CampusCore isn’t just another project —
